@@ -22,3 +22,14 @@ CREATE TABLE messages (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
+
+## change this to aiven.io your database link
+
+```
+const dbConfig = {
+  host: 'ppppp',
+  user: 'pppppp',
+  password: 'ppppppp',
+  database: 'pppppp',
+  port: 15633,
+```
