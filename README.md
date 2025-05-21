@@ -4,7 +4,7 @@ curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 apt install nodejs npm
 ```
 
-# Run
+# Run in backend
 ```
 npm run start
 ```
