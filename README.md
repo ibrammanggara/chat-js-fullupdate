@@ -1,4 +1,4 @@
-# Req nodejs v18 ~~up-version
+# Req nodejs v18^
 ```
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 apt install nodejs npm
