@@ -10,7 +10,7 @@ npm run start
 ```
 # Database 
 
-with aiven.io (free mysql)
+with [aiven.io](https://aiven.io/) (free mysql)
 ```
 CREATE DATABASE chatdb;
 
@@ -23,7 +23,7 @@ CREATE TABLE messages (
 );
 ```
 
-## Change this to aiven.io your database link
+## Change this to [aiven.io](https://aiven.io/) your database link
 
 ```
 const dbConfig = {
