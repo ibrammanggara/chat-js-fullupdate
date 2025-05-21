@@ -8,3 +8,4 @@ apt install nodejs npm
 ```
 npm run start
 ```
+# Database with aiven.io (free mysql)
