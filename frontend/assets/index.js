@@ -1,15 +1,31 @@
 const socket = io();
+const messageWrapper = document.getElementById("message-wrapper");
 const messageContainer = document.getElementById("message-container");
 const messageInput = document.getElementById("message-input");
 const sendButton = document.getElementById("send-button");
 const nameInput = document.getElementById("name-input");
 const notificationSound = document.getElementById("notification-sound");
-const themeToggleCheckbox = document.getElementById("theme-toggle");
 const replyPreview = document.getElementById("reply-preview");
 const replyText = document.getElementById("reply-text");
+const themeButton = document.querySelector('.switch-theme button');
 
 let currentUser = nameInput.value || "Anonim";
 let replyingTo = null;
+
+if (localStorage.getItem('theme') === 'dark') {
+  document.body.classList.add('dark-mode');
+  if (themeButton) themeButton.classList.add('active');
+}
+
+if (themeButton) {
+  themeButton.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const isDark = !document.body.classList.contains('dark-mode');
+    document.body.classList.toggle('dark-mode');
+    this.classList.toggle('active');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  });
+}
 
 function updateCurrentUser() {
   currentUser = nameInput.value.trim() || "Anonim";
@@ -28,45 +44,85 @@ function playNotificationSound() {
     notificationSound.play().catch(() => {
       document.addEventListener("click", () => notificationSound.play(), { once: true });
     });
-  } catch (e) {
-    console.error("Error playing sound:", e);
-  }
+  } catch (e) {}
+}
+
+function scrollToBottom() {
+  messageWrapper.scrollTo({
+    top: messageWrapper.scrollHeight,
+    behavior: 'smooth'
+  });
 }
 
 socket.on("chatMessage", (data) => {
   const { message, replyTo, createdAt } = data;
-  const isCurrentUser = message.startsWith(currentUser + ":");
+  const hasSender = message.includes(':');
+  const isCurrentUser = hasSender && message.startsWith(currentUser + ":");
 
   const wrapper = document.createElement("div");
   wrapper.className = "d-flex flex-column " + (isCurrentUser ? "align-items-end" : "align-items-start");
 
   const bubble = document.createElement("div");
-  bubble.className = "chat-bubble " + (isCurrentUser ? "bubble-mine text-dark" : "bubble-theirs text-dark");
-  bubble.textContent = message;
+  bubble.className = "chat-bubble " + (isCurrentUser ? "bubble-mine" : "bubble-theirs");
+
+  let displayedText = hasSender ? message.split(":").slice(1).join(":").trim() : message;
+  if (displayedText.length > 250) {
+    const shortText = displayedText.slice(0, 250) + "...";
+    const bubbleShort = document.createElement("span");
+    bubbleShort.className = "bubble-short";
+    bubbleShort.textContent = shortText;
+
+    const bubbleFull = document.createElement("span");
+    bubbleFull.className = "bubble-full";
+    bubbleFull.textContent = displayedText;
+
+    const btnMore = document.createElement("button");
+    btnMore.className = "btn-more";
+    btnMore.textContent = "Selengkapnya";
+    btnMore.onclick = function(e) {
+      e.stopPropagation();
+      bubble.classList.toggle("bubble-expanded");
+      btnMore.textContent = bubble.classList.contains("bubble-expanded") ? "Sembunyikan" : "Selengkapnya";
+    };
+
+    bubble.appendChild(bubbleShort);
+    bubble.appendChild(bubbleFull);
+    bubble.appendChild(btnMore);
+  } else {
+    bubble.textContent = displayedText;
+  }
 
   if (replyTo) {
-    const reply = document.createElement("div");
-    reply.innerHTML = `<small><em>${replyTo}</em></small>`;
-    reply.className = "text-muted mb-1";
-    bubble.prepend(reply);
+    let preview = replyTo;
+    if (preview.length > 40) {
+      preview = preview.slice(0, 40) + "...";
+    }
+    const replyDiv = document.createElement("div");
+    replyDiv.className = "text-muted mb-1";
+    replyDiv.innerHTML = `<small><em>Membalas: ${preview}</em></small>`;
+    bubble.prepend(replyDiv);
   }
 
   const time = document.createElement("div");
-  time.className = "text-end small text-muted mt-1";
+  time.className = "chat-bubble-time";
   time.textContent = formatTime(createdAt);
   bubble.appendChild(time);
 
   bubble.addEventListener("click", () => {
     replyingTo = message;
-    replyText.textContent = message;
+    let preview = message;
+    if (preview.length > 40) {
+      preview = preview.slice(0, 40) + "...";
+    }
+    replyText.textContent = preview;
     replyPreview.style.display = "block";
   });
 
   wrapper.appendChild(bubble);
   messageContainer.appendChild(wrapper);
-  messageContainer.scrollTop = messageContainer.scrollHeight;
 
-  if (!isCurrentUser) playNotificationSound();
+  scrollToBottom();
+  if (!isCurrentUser && hasSender) playNotificationSound();
 });
 
 function sendMessage() {
@@ -80,50 +136,22 @@ function sendMessage() {
     messageInput.value = "";
     replyingTo = null;
     replyPreview.style.display = "none";
+    scrollToBottom();
   }
 }
 
 sendButton.addEventListener("click", sendMessage);
 messageInput.addEventListener("keyup", (e) => e.key === "Enter" && sendMessage());
 
-function applyTheme(dark) {
-  const body = document.body;
-
-  if (dark) {
-    body.classList.add("dark-mode");
-    document.getElementById("input-panel").classList.add("bg-dark", "border-top");
-    document.getElementById("message-container").classList.add("bg-dark");
-    document.getElementById("input-panel").classList.remove("bg-white");
-    document.getElementById("message-container").classList.remove("bg-body-tertiary");
-    localStorage.setItem("theme", "dark");
-    themeToggleCheckbox.checked = true;
-  } else {
-    body.classList.remove("dark-mode");
-    document.getElementById("input-panel").classList.add("bg-white");
-    document.getElementById("message-container").classList.add("bg-body-tertiary");
-    document.getElementById("input-panel").classList.remove("bg-dark");
-    document.getElementById("message-container").classList.remove("bg-dark");
-    localStorage.setItem("theme", "light");
-    themeToggleCheckbox.checked = false;
-  }
-
-  // Adjust icon inside toggle size
-  const style = document.createElement('style');
-  style.textContent = `
-    .slider::before {
-      background-size: 20px 20px !important;
-      background-repeat: no-repeat;
-      background-position: center;
-    }
-  `;
-  document.head.appendChild(style);
-}
-
-const isDark = localStorage.getItem("theme") === "dark";
-applyTheme(isDark);
-themeToggleCheckbox.addEventListener("change", () => {
-  const isDarkNow = themeToggleCheckbox.checked;
-  applyTheme(isDarkNow);
-});
-
 updateCurrentUser();
+
+document.addEventListener("DOMContentLoaded", function() {
+  const closeReply = document.getElementById("close-reply");
+  if (closeReply) {
+    closeReply.addEventListener("click", function() {
+      replyingTo = null;
+      replyPreview.style.display = "none";
+      replyText.textContent = "";
+    });
+  }
+});
