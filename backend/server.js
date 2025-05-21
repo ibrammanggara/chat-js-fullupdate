@@ -12,10 +12,10 @@ app.use(express.static(path.join(__dirname, '../frontend/public')));
 app.use('/assets', express.static(path.join(__dirname, '../frontend/assets')));
 
 const dbConfig = {
-  host: 'mysql-ibrmm-ibrammanggaraa-e1fc.h.aivencloud.com',
-  user: 'avnadmin',
-  password: 'AVNS__y_04E50xeLsL6PmMBy',
-  database: 'chatdb',
+  host: 'ppppp',
+  user: 'pppppp',
+  password: 'ppppppp',
+  database: 'pppppp',
   port: 15633,
   ssl: { rejectUnauthorized: false },
   waitForConnections: true,
