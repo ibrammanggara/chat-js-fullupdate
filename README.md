@@ -1,4 +1,4 @@
-# Req nodejs v18^
+# Request nodejs v18^
 ```
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 apt install nodejs npm
@@ -23,7 +23,7 @@ CREATE TABLE messages (
 );
 ```
 
-## change this to aiven.io your database link
+## Change this to aiven.io your database link
 
 ```
 const dbConfig = {
